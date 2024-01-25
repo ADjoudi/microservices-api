@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 
 /* timestamp endpoint */
-router.get("/timestamp/:date", function (req, res, next) {
+router.post("/timestamp/api/:date", function (req, res, next) {
   const date = req.params.date ? new Date(req.params.date) : new Date();
   if (date == "Invalid Date") {
     res.status(400);
