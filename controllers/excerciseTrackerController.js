@@ -51,7 +51,6 @@ exports.excercises_post = [
       return;
     }
     const user = await User.findById(req.params.id);
-    console.log(user, !user);
     if (!user) {
       res.json({ error: "invalid id" });
       return;
@@ -59,9 +58,7 @@ exports.excercises_post = [
     const excercise = new Exercise({
       description: req.body.description,
       duration: req.body.duration,
-      date: !req.body.date
-        ? new Date().toDateString()
-        : new Date(req.body.date).toDateString(),
+      date: !req.body.date ? new Date() : new Date(req.body.date),
     });
     await excercise.save();
     user.log.push(excercise._id);
@@ -72,27 +69,31 @@ exports.excercises_post = [
       _id: user._id,
       description,
       duration,
-      date,
+      date: new Date(date).toDateString(),
     });
   },
 ];
 
 exports.logs_get = async function (req, res, next) {
-  if (!req.params.id) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
     res.json({ error: "invalid id" });
     return;
   }
   let query = { _id: req.params.id };
-  if (req.params.from && req.params.to) {
-    query.date = { $gte: req.params.from, $lte: req.params.to };
+  if (req.query.from && req.query.to) {
+    query.date = {
+      $gte: new Date(req.query.from),
+      $lte: new Date(req.query.to),
+    };
   }
 
   let userQuery = User.findById(query).populate("log");
-  if (req.params.limit > 0) {
-    userQuery = userQuery.limit(req.params.limit);
+  if (Number(req.query.limit) > 0) {
+    userQuery = userQuery.limit(Number(req.query.limit));
   }
 
   const user = await userQuery.exec();
+
   if (!user) {
     res.json({ error: "user not found" });
     return;
@@ -101,7 +102,7 @@ exports.logs_get = async function (req, res, next) {
   const fillteredLog = log.map((ex) => ({
     description: ex.description,
     duration: ex.duration,
-    date: ex.date,
+    date: ex.date.toDateString(),
   }));
   res.json({ username, count, _id, log: fillteredLog });
 };
