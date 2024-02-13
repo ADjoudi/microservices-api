@@ -5,6 +5,7 @@ const timestampController = require("../controllers/timestampController");
 const requestHeaderParserController = require("../controllers/requestHeaderParserController");
 const urlShortenerController = require("../controllers/urlShortenerController");
 const excerciseTrackerController = require("../controllers/excerciseTrackerController");
+const fileMetadataController = require("../controllers/fileMetadataController");
 
 /* timestamp endpoint */
 router.get("/timestamp/api/:date?", timestampController.timestamp_get);
@@ -38,4 +39,8 @@ router.get(
   "/excercise/api/users/:id/logs",
   excerciseTrackerController.logs_get
 );
+
+/* File Metadata */
+router.post("/metadata/api/", fileMetadataController.file_post);
+
 module.exports = router;
