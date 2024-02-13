@@ -79,18 +79,22 @@ exports.logs_get = async function (req, res, next) {
     res.json({ error: "invalid id" });
     return;
   }
-  let query = { _id: req.params.id };
+
+  let query = null;
   if (req.query.from && req.query.to) {
-    query.date = {
-      $gte: new Date(req.query.from),
-      $lte: new Date(req.query.to),
+    query = {
+      date: {
+        $gte: new Date(req.query.from),
+        $lte: new Date(req.query.to),
+      },
     };
   }
 
-  let userQuery = User.findById(query).populate("log");
-  if (Number(req.query.limit) > 0) {
-    userQuery = userQuery.limit(Number(req.query.limit));
-  }
+  let userQuery = User.findOne({ _id: req.params.id }).populate({
+    path: "log",
+    match: query,
+    options: { limit: req.query.limit > 0 ? Number(req.query.limit) : null },
+  });
 
   const user = await userQuery.exec();
 
@@ -99,10 +103,10 @@ exports.logs_get = async function (req, res, next) {
     return;
   }
   const { username, count, _id, log } = user;
-  const fillteredLog = log.map((ex) => ({
-    description: ex.description,
-    duration: ex.duration,
-    date: ex.date.toDateString(),
+  const filteredLog = log.map((exercise) => ({
+    description: exercise.description,
+    duration: exercise.duration,
+    date: exercise.date.toDateString(),
   }));
-  res.json({ username, count, _id, log: fillteredLog });
+  res.json({ username, count, _id, log: filteredLog });
 };
