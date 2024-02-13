@@ -1,6 +1,7 @@
 const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const Exercise = require("../models/Exercise");
+const { default: mongoose } = require("mongoose");
 
 exports.users_post = [
   body("username").trim().isString().isLength({ min: 4 }).escape(),
@@ -45,28 +46,34 @@ exports.excercises_post = [
       res.json({ error: "invalid data" });
       return;
     }
-    await User.findById(req.params.id)
-      .then(async (user) => {
-        const excercise = new Exercise({
-          description: req.body.description,
-          duration: req.body.duration,
-          date: !req.body.date ? new Date().toDateString() : req.body.date,
-        });
-        await excercise.save();
-        user.log.push(excercise._id);
-        await user.save();
-        const { description, duration, date } = excercise;
-        res.json({
-          username: user.username,
-          _id: user._id,
-          description,
-          duration,
-          date,
-        });
-      })
-      .catch((err) => {
-        res.json({ error: "invalid id" });
-      });
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      res.json({ error: "invalid id" });
+      return;
+    }
+    const user = await User.findById(req.params.id);
+    console.log(user, !user);
+    if (!user) {
+      res.json({ error: "invalid id" });
+      return;
+    }
+    const excercise = new Exercise({
+      description: req.body.description,
+      duration: req.body.duration,
+      date: !req.body.date
+        ? new Date().toDateString()
+        : new Date(req.body.date).toDateString(),
+    });
+    await excercise.save();
+    user.log.push(excercise._id);
+    await user.save();
+    const { description, duration, date } = excercise;
+    res.json({
+      username: user.username,
+      _id: user._id,
+      description,
+      duration,
+      date,
+    });
   },
 ];
 

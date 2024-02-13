@@ -30,7 +30,7 @@ router.get("/excercise/api/users", excerciseTrackerController.users_get);
 router.post("/excercise/api/users", excerciseTrackerController.users_post);
 
 router.post(
-  "/excercise/api/users/:id/excercises",
+  "/excercise/api/users/:id/exercises",
   excerciseTrackerController.excercises_post
 );
 
