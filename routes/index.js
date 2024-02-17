@@ -41,6 +41,7 @@ router.get(
 );
 
 /* File Metadata */
+router.get("/metadata/api/", fileMetadataController.file_get);
 router.post("/metadata/api/", fileMetadataController.file_post);
 
 module.exports = router;
